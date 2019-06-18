@@ -2,18 +2,31 @@ package com.example.mutetest.Fragment;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.example.mutetest.Activity.VerifyOTP;
+import com.example.mutetest.ConnectionClass;
 import com.example.mutetest.R;
+import com.example.mutetest.otherfiles.SmsBackgrond;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Random;
 
 
 /**
@@ -38,6 +51,11 @@ public class RegisterFra extends Fragment {
 
     Activity referenceActivity;
     View parentHolder;
+    EditText name,mobile,password;
+    Spinner gender;
+    Button register;
+    ConnectionClass connectionClass=new ConnectionClass();
+    int size=0;
 
     public RegisterFra() {
         // Required empty public constructor
@@ -76,30 +94,77 @@ public class RegisterFra extends Fragment {
         referenceActivity=getActivity();
         parentHolder = inflater.inflate(R.layout.fragment_register, container,false);
 
-        final EditText name=(EditText) parentHolder.findViewById(R.id.name);
-        final Spinner gender=(Spinner)parentHolder.findViewById(R.id.gender);
-        EditText mobile=(EditText)parentHolder.findViewById(R.id.mobilenumber);
-        EditText password=(EditText)parentHolder.findViewById(R.id.password);
-        Button register=(Button)parentHolder.findViewById(R.id.register);
+        name=(EditText) parentHolder.findViewById(R.id.name);
+        gender=(Spinner)parentHolder.findViewById(R.id.gender);
+        mobile=(EditText)parentHolder.findViewById(R.id.mobilenumber);
+        password=(EditText)parentHolder.findViewById(R.id.password);
+        register=(Button)parentHolder.findViewById(R.id.register);
 
-        if(name.getText().length()<3){
-            Toast.makeText(referenceActivity,"Your name must contain 4 latter",Toast.LENGTH_SHORT).show();
-        }else if(gender.getSelectedItem().toString().equals("select gender")){
-            Toast.makeText(referenceActivity,"select your gender"+gender.getSelectedItem(),Toast.LENGTH_SHORT).show();
-        }
-        Toast.makeText(referenceActivity," "+gender.getSelectedItem().toString(),Toast.LENGTH_SHORT).show();
+        mobile.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if(mobile.getText().length()==10){
+                    try{
+                        Connection connection=connectionClass.CONN();
+                        Statement statement=connection.createStatement();
+                        ResultSet resultSet=statement.executeQuery("select * from users where user_mobile='"+ mobile.getText().toString() + "'");
+                        if(resultSet.next()){
+                            Toast.makeText(getActivity(),"given number is already registered please try with other one",Toast.LENGTH_SHORT).show();
+                            register.setEnabled(false);
+                        }else{
+                            register.setEnabled(true);
+                        }
+                    }catch (SQLException ex){
+                        Toast.makeText(getActivity(),ex.toString(),Toast.LENGTH_SHORT).show();
+                    }
+                }else if(mobile.getText().length()<10)
+                    register.setEnabled(false);
+                else
+                    register.setEnabled(true);
+            }
+        });
 
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if(name.getText().length()<4){
+                    Toast.makeText(referenceActivity,"Your name must cantain 4 latter",Toast.LENGTH_SHORT).show();
+                }else if(gender.getSelectedItem().toString().equals("select gender")){
+                    Toast.makeText(referenceActivity,"Please select your gender",Toast.LENGTH_SHORT).show();
+                }else if(mobile.getText().length()!=10){
+                    Toast.makeText(referenceActivity,"Invalid number!!",Toast.LENGTH_SHORT).show();
+                }else if(password.getText().length()<8 || password.getText().length()>12){
+                    Toast.makeText(referenceActivity,"your password must in between 8 to 12 digits or latter",Toast.LENGTH_SHORT).show();
+                }else {
+                    Random random = new Random();
+                    String otp = String.format("%04d", random.nextInt(10000));
+                    SmsBackgrond backgroudWorker = new SmsBackgrond(getContext());
+                    backgroudWorker.execute(mobile.getText().toString(), otp);
+                    Intent i = new Intent(referenceActivity, VerifyOTP.class);
+                    i.putExtra("name", name.getText());
+                    i.putExtra("gender", gender.getSelectedItem().toString());
+                    i.putExtra("mobile", mobile.getText());
+                    i.putExtra("password", password.getText());
+                    i.putExtra("otp", otp);
+                    i.putExtra("activity","Home");
+                    referenceActivity.startActivity(i);
+                    referenceActivity.finish();
+                }
             }
         });
 
-
-
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_register, container, false);
+        return parentHolder;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

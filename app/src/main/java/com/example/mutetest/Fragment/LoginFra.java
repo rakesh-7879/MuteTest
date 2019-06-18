@@ -1,14 +1,29 @@
 package com.example.mutetest.Fragment;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.mutetest.Activity.ForgetPassword;
+import com.example.mutetest.Activity.Home;
+import com.example.mutetest.ConnectionClass;
 import com.example.mutetest.R;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 
 /**
@@ -19,7 +34,7 @@ import com.example.mutetest.R;
  * Use the {@link LoginFra#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class LoginFra extends Fragment {
+public class LoginFra extends Fragment implements View.OnClickListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -30,6 +45,14 @@ public class LoginFra extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+
+    Activity referenceActivity;
+    View parentHolder;
+    EditText mobile,password;
+    TextView forget;
+    Button login;
+    ImageView google,facebook,insta;
+    ConnectionClass connectionClass=new ConnectionClass();
 
     public LoginFra() {
         // Required empty public constructor
@@ -66,7 +89,41 @@ public class LoginFra extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_login, container, false);
+        referenceActivity=getActivity();
+        parentHolder = inflater.inflate(R.layout.fragment_login, container,false);
+        mobile=(EditText)parentHolder.findViewById(R.id.mobilenumber);
+        password=(EditText)parentHolder.findViewById(R.id.password);
+        forget=(TextView)parentHolder.findViewById(R.id.forget);
+        login=(Button)parentHolder.findViewById(R.id.login);
+        google=(ImageView)parentHolder.findViewById(R.id.google);
+        facebook=(ImageView)parentHolder.findViewById(R.id.facebook);
+        insta=(ImageView)parentHolder.findViewById(R.id.insta);
+
+        google.setOnClickListener(this);
+        facebook.setOnClickListener(this);
+        insta.setOnClickListener(this);
+        forget.setOnClickListener(this);
+
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try{
+                    Connection connection=connectionClass.CONN();
+                    Statement statement=connection.createStatement();
+                    ResultSet resultSet=statement.executeQuery("select * from users where user_mobile='"+ mobile.getText().toString() + "' and password='"+password.getText().toString()+"'");
+                    if(resultSet.next()){
+                        Intent gotohome=new Intent(referenceActivity, Home.class);
+                        referenceActivity.startActivity(gotohome);
+                        referenceActivity.finish();
+                    }else{
+                        Toast.makeText(getActivity(),"Incurrect Username password",Toast.LENGTH_SHORT).show();
+                    }
+                }catch (SQLException ex){
+                    Toast.makeText(getActivity(),ex.toString(),Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        return parentHolder;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -91,6 +148,20 @@ public class LoginFra extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.forget:
+                Intent gotoforget=new Intent(referenceActivity, ForgetPassword.class);
+                referenceActivity.startActivity(gotoforget);
+                referenceActivity.finish();
+                break;
+                default:
+                    Toast.makeText(getActivity(),"Sorry this feature is not working !! we will add it as soon as posible",Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     /**
