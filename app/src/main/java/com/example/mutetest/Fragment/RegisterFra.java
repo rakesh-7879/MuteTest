@@ -100,40 +100,6 @@ public class RegisterFra extends Fragment {
         password=(EditText)parentHolder.findViewById(R.id.password);
         register=(Button)parentHolder.findViewById(R.id.register);
 
-        mobile.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if(mobile.getText().length()==10){
-                    try{
-                        Connection connection=connectionClass.CONN();
-                        Statement statement=connection.createStatement();
-                        ResultSet resultSet=statement.executeQuery("select * from users where user_mobile='"+ mobile.getText().toString() + "'");
-                        if(resultSet.next()){
-                            Toast.makeText(getActivity(),"given number is already registered please try with other one",Toast.LENGTH_SHORT).show();
-                            register.setEnabled(false);
-                        }else{
-                            register.setEnabled(true);
-                        }
-                    }catch (SQLException ex){
-                        Toast.makeText(getActivity(),ex.toString(),Toast.LENGTH_SHORT).show();
-                    }
-                }else if(mobile.getText().length()<10)
-                    register.setEnabled(false);
-                else
-                    register.setEnabled(true);
-            }
-        });
-
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -149,12 +115,13 @@ public class RegisterFra extends Fragment {
                     Random random = new Random();
                     String otp = String.format("%04d", random.nextInt(10000));
                     SmsBackgrond backgroudWorker = new SmsBackgrond(getContext());
+//                    Toast.makeText(referenceActivity,otp,Toast.LENGTH_SHORT).show();
                     backgroudWorker.execute(mobile.getText().toString(), otp);
                     Intent i = new Intent(referenceActivity, VerifyOTP.class);
-                    i.putExtra("name", name.getText());
+                    i.putExtra("name", name.getText().toString());
                     i.putExtra("gender", gender.getSelectedItem().toString());
-                    i.putExtra("mobile", mobile.getText());
-                    i.putExtra("password", password.getText());
+                    i.putExtra("mobile", mobile.getText().toString());
+                    i.putExtra("password", password.getText().toString());
                     i.putExtra("otp", otp);
                     i.putExtra("activity","Home");
                     referenceActivity.startActivity(i);

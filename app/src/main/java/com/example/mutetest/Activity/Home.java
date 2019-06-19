@@ -1,5 +1,6 @@
 package com.example.mutetest.Activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -13,11 +14,18 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.mutetest.R;
+import com.example.mutetest.otherfiles.SharedPreferencesUser;
 
 public class Home extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    Intent gotonext;
+    SharedPreferencesUser user;
+    ImageView menuHeaderGender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +48,10 @@ public class Home extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
+
+
+        user=new SharedPreferencesUser(this);
+
     }
 
     @Override
@@ -56,6 +68,12 @@ public class Home extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.home, menu);
+        menuHeaderGender=findViewById(R.id.menu_header_profile);
+        if(user.getGender().equals("Male")){
+            menuHeaderGender.setImageResource(R.drawable.man);
+        }else{
+            menuHeaderGender.setImageResource(R.drawable.woman);
+        }
         return true;
     }
 
@@ -81,16 +99,22 @@ public class Home extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            // Handle the camera action
+
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
 
-        } else if (id == R.id.nav_tools) {
-
+        } else if (id == R.id.nav_logout) {
+            user.setName("");
+            user.setMobile("");
+            user.setGender("");
+            user.setGender("");
+            user.setAddress("");
+            user.setCoaching("");
+            gotonext=new Intent(getApplicationContext(),Login.class);
+            startActivity(gotonext);
+            finish();
         } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
 
         }
 

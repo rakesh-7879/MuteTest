@@ -19,6 +19,7 @@ import com.example.mutetest.Activity.ForgetPassword;
 import com.example.mutetest.Activity.Home;
 import com.example.mutetest.ConnectionClass;
 import com.example.mutetest.R;
+import com.example.mutetest.otherfiles.SharedPreferencesUser;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -53,6 +54,7 @@ public class LoginFra extends Fragment implements View.OnClickListener {
     Button login;
     ImageView google,facebook,insta;
     ConnectionClass connectionClass=new ConnectionClass();
+    SharedPreferencesUser user;
 
     public LoginFra() {
         // Required empty public constructor
@@ -98,31 +100,14 @@ public class LoginFra extends Fragment implements View.OnClickListener {
         google=(ImageView)parentHolder.findViewById(R.id.google);
         facebook=(ImageView)parentHolder.findViewById(R.id.facebook);
         insta=(ImageView)parentHolder.findViewById(R.id.insta);
+        user=new SharedPreferencesUser(referenceActivity);
 
         google.setOnClickListener(this);
         facebook.setOnClickListener(this);
         insta.setOnClickListener(this);
         forget.setOnClickListener(this);
 
-        login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try{
-                    Connection connection=connectionClass.CONN();
-                    Statement statement=connection.createStatement();
-                    ResultSet resultSet=statement.executeQuery("select * from users where user_mobile='"+ mobile.getText().toString() + "' and password='"+password.getText().toString()+"'");
-                    if(resultSet.next()){
-                        Intent gotohome=new Intent(referenceActivity, Home.class);
-                        referenceActivity.startActivity(gotohome);
-                        referenceActivity.finish();
-                    }else{
-                        Toast.makeText(getActivity(),"Incurrect Username password",Toast.LENGTH_SHORT).show();
-                    }
-                }catch (SQLException ex){
-                    Toast.makeText(getActivity(),ex.toString(),Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        login.setOnClickListener(this);
         return parentHolder;
     }
 
@@ -153,6 +138,26 @@ public class LoginFra extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()){
+            case R.id.login:
+                try{
+                    Connection connection=connectionClass.CONN();
+                    Statement statement=connection.createStatement();
+                    ResultSet resultSet=statement.executeQuery("select * from users where user_mobile='"+ mobile.getText().toString() + "' and password='"+password.getText().toString()+"'");
+                    if(resultSet.next()){
+                        user.setName(resultSet.getString(2));
+                        user.setMobile(resultSet.getString(3));
+                        user.setGender(resultSet.getString(5));
+                        user.setOtp(resultSet.getString(6));
+                        Intent gotohome=new Intent(referenceActivity, Home.class);
+                        referenceActivity.startActivity(gotohome);
+                        referenceActivity.finish();
+                    }else{
+                        Toast.makeText(getActivity(),"Incurrect Username password",Toast.LENGTH_SHORT).show();
+                    }
+                }catch (SQLException ex){
+                    Toast.makeText(getActivity(),ex.toString(),Toast.LENGTH_SHORT).show();
+                }
+                break;
             case R.id.forget:
                 Intent gotoforget=new Intent(referenceActivity, ForgetPassword.class);
                 referenceActivity.startActivity(gotoforget);

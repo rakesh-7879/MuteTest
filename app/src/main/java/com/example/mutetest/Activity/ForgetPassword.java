@@ -26,11 +26,12 @@ public class ForgetPassword extends AppCompatActivity implements View.OnClickLis
 
     LinearLayout screen1,screen2;
     ConstraintLayout result;
-    EditText rnumber;
+    EditText rnumber,newpassword,confirmpassword;
     TextView title,name,address,gender;
-    Button findme,nextResult,getOTP;
+    Button findme,nextResult,getOTP,submit;
     ResultSet resultSet;
     ConnectionClass connectionClass=new ConnectionClass();
+    String mobile="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +43,8 @@ public class ForgetPassword extends AppCompatActivity implements View.OnClickLis
         result=(ConstraintLayout)findViewById(R.id.fresult);
         screen1=(LinearLayout)findViewById(R.id.screen1);
         screen2=(LinearLayout)findViewById(R.id.screen2);
-        if(thisIntent.hasExtra("OTP")){
+        if(thisIntent.hasExtra("mobile")){
+            mobile=thisIntent.getStringExtra("mobile");
             screen1.setVisibility(View.GONE);
             screen2.setVisibility(View.VISIBLE);
         }else{
@@ -50,6 +52,8 @@ public class ForgetPassword extends AppCompatActivity implements View.OnClickLis
             screen2.setVisibility(View.GONE);
         }
         rnumber=findViewById(R.id.rnumber);
+        newpassword=findViewById(R.id.newpassword);
+        confirmpassword=findViewById(R.id.confirmpassword);
         title=findViewById(R.id.title);
         name=findViewById(R.id.fname);
         gender=(TextView)findViewById(R.id.fgender);
@@ -57,10 +61,12 @@ public class ForgetPassword extends AppCompatActivity implements View.OnClickLis
         nextResult=findViewById(R.id.nextresult);
         getOTP=findViewById(R.id.getotp);
         findme=findViewById(R.id.findme);
+        submit=findViewById(R.id.submit);
 
         findme.setOnClickListener(this);
         nextResult.setOnClickListener(this);
         getOTP.setOnClickListener(this);
+        submit.setOnClickListener(this);
 
     }
 
@@ -68,7 +74,7 @@ public class ForgetPassword extends AppCompatActivity implements View.OnClickLis
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.findme:
-                String mobile=rnumber.getText().toString();
+                mobile=rnumber.getText().toString();
                 try{
                     Connection connection=connectionClass.CONN();
                     Statement statement=connection.createStatement();
@@ -103,11 +109,10 @@ public class ForgetPassword extends AppCompatActivity implements View.OnClickLis
                 try {
                     Random random = new Random();
                     String otp = String.format("%04d", random.nextInt(10000));
-                    Toast.makeText(this,otp,Toast.LENGTH_SHORT).show();
                     SmsBackgrond backgroudWorker = new SmsBackgrond(this);
-//                    backgroudWorker.execute(resultSet.getString(3), otp);
+                    backgroudWorker.execute(resultSet.getString(3), otp);
                     Intent i = new Intent(ForgetPassword.this, VerifyOTP.class);
-                    i.putExtra("name", name.getText());
+                    i.putExtra("name", name.getText().toString());
                     i.putExtra("gender", gender.getText().toString());
                     i.putExtra("mobile", resultSet.getString(3));
                     i.putExtra("password", resultSet.getString(8));
@@ -117,6 +122,20 @@ public class ForgetPassword extends AppCompatActivity implements View.OnClickLis
                     finish();
                 } catch (SQLException e) {
                     e.printStackTrace();
+                }
+                break;
+            case R.id.submit:
+                if(newpassword.getText().toString().equals(confirmpassword.getText().toString())){
+                    try {
+                        Connection connection = connectionClass.CONN();
+                        Statement statement = connection.createStatement();
+                        statement.execute("update users set password='" + newpassword.getText().toString() + "' where user_mobile='" + mobile + "'");
+                        Intent next = new Intent(ForgetPassword.this, Home.class);
+                        startActivity(next);
+                        finish();
+                    }catch (SQLException ex){
+                        Toast.makeText(getApplicationContext(),ex.toString(),Toast.LENGTH_SHORT).show();
+                    }
                 }
                 break;
         }
