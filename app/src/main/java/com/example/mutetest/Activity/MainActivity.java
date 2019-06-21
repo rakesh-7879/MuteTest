@@ -9,6 +9,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.example.mutetest.R;
+import com.example.mutetest.Test;
 import com.example.mutetest.otherfiles.SharedPreferencesUser;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         }else if(gender.equals("")){
             Toast.makeText(getApplicationContext(),"Gender is not set",Toast.LENGTH_SHORT).show();
         }else{
-            i=new Intent(MainActivity.this,Home.class);
+            i=new Intent(MainActivity.this, Home.class);
         }
         setContentView(R.layout.activity_main);
 
